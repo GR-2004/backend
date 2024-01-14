@@ -10,9 +10,6 @@ import mongoose from "mongoose";
 const generateAccessAndRefereshTokens = async(userId) =>{
     try {
         const user = await User.findById(userId)
-        if (!user) {
-            throw new ApiError(404, "User not found");
-        }
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
@@ -156,8 +153,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1 //this removes the field from document
             }
         },
         {
@@ -178,9 +175,9 @@ const logoutUser = asyncHandler(async (req, res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshAccessToken || req.body.refreshAccessToken
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
-    if(!incomingRefreshToken){
+    if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
 
@@ -192,17 +189,18 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const user = await User.findById(decodedToken?._id)
     
-        if(!user){
-            throw new ApiError(401, "Invalid Refresh Token")
+        if (!user) {
+            throw new ApiError(401, "Invalid refresh token")
         }
     
-        if(incomingRefreshToken !== user?.refreshToken) {
+        if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "Refresh token is expired or used")
+            
         }
     
         const options = {
             httpOnly: true,
-            secure: true,
+            secure: true
         }
     
         const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
@@ -213,7 +211,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         .cookie("refreshToken", newRefreshToken, options)
         .json(
             new ApiResponse(
-                200,
+                200, 
                 {accessToken, refreshToken: newRefreshToken},
                 "Access token refreshed"
             )
@@ -221,6 +219,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refresh token")
     }
+
 })
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
