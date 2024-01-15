@@ -46,6 +46,3 @@ router.route("/c/:username").get(verifyJWT, getUserChannelProfile); //done
 router.route("/history").get(verifyJWT, getWatchHistory) //done
 
 export default router
-/*
-"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NTllN2QxZmIyNmQ3OTA5MDgxZGU0ZTMiLCJpYXQiOjE3MDUyNDA5MTYsImV4cCI6MTcwNjEwNDkxNn0.XYdSiAsrONpfO2tCECKhyY2hnjAGJbzSvrVtDDdmV3c"
-*/
