@@ -25,4 +25,16 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 }
 
-export {uploadOnCloudinary};
+const deleteFromCloudinary = async (publicid) => {
+  try {
+    if (!publicid) return "Public id not found";
+    const deleteResponse = await cloudinary.uploader.destroy(publicid, {
+      resource_type: "auto",
+    });
+    return deleteResponse;
+  } catch (e) {
+    return e.message;
+  }
+};
+
+export {uploadOnCloudinary, deleteFromCloudinary};
