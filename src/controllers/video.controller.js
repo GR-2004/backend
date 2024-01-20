@@ -67,6 +67,22 @@ const publishAVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: get video by id
+    try {
+        if(!isValidObjectId(videoId)){
+            throw new ApiError(400, "please insert valid videoId")
+        }
+        const video = await Video.findOne({
+            _id: new mongoose.Types.ObjectId(videoId)
+        })
+        if(!video){
+            throw new ApiError(404, `videoId not found`)
+        }
+        return res
+        .status(200)
+        .json(new ApiResponse(200, video, "video fetched successfully"))
+    } catch (error) {
+        throw new ApiError(500, `something went wrong ${error.message}`)
+    }
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
