@@ -125,24 +125,16 @@ const updateVideo = asyncHandler(async (req, res) => {
         // if(!deletedThumbnail){
         //     throw new ApiError(500, "Error: old thumbnail not deleted from cloudinary")
         // }
-
-        const updatedVideo = await Video.findByIdAndUpdate(
-            {
-                _id: new mongoose.Types.ObjectId(videoId)
-            }, 
-            {
-                $set: { 
-                    thumbnail: thumbnail.url,
-                }            
-            },
-            {
-                new: true
-            }
-        )
+              
+        // Toggle the boolean field
+        video.thumbnail = thumbnail.url;
+    
+        // Save the updated document
+        await video.save();
 
         return res
         .status(200)
-        .json(new ApiResponse(200, updatedVideo, "video updated successfully!"))
+        .json(new ApiResponse(200, video, "video updated successfully!"))
     } catch (error) {
         throw new ApiError(500, `something went wrong ${error.message}`)
     }
@@ -184,6 +176,31 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    if(!videoId){
+        throw new ApiError(400, "please insert videoId")
+    }
+    try {
+        const video = await Video.findById(
+            {_id: new mongoose.Types.ObjectId(videoId)}
+        )
+
+        if (!video) {
+            console.log('Video not found');
+            return;
+        }
+      
+        // Toggle the boolean field
+        video.isPublished = !video.isPublished;
+    
+        // Save the updated document
+        await video.save();
+
+        return res
+        .status(200)
+        .json(new ApiResponse(200, video, "publish Status fetched successfully!"))
+    } catch (error) {
+        throw new ApiError(500, error.message)
+    }
 })
 
 export {
