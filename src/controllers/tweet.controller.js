@@ -15,7 +15,7 @@ const createTweet = asyncHandler(async (req, res) => {
         const userId = req.user?._id
         const tweet = await Tweet.create({
             content,
-            owner: mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(userId)
         })
         return res
         .status(200)
@@ -30,7 +30,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     try {
         const userId = req.user?._id
         const tweet = await Tweet.find({
-            owner: mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(userId)
         })
         return res
         .status(200)
@@ -43,11 +43,17 @@ const getUserTweets = asyncHandler(async (req, res) => {
 const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
     const { tweetId } = req.params
+    if(!tweetId){
+        throw new ApiError(400, "please give tweetId")
+    }
     const { content } = req.body
+    if(!content){
+        throw new ApiError(400, "please insert content")
+    }
     try {
         const tweet = await Tweet.findByIdAndUpdate(
             {
-                _id : mongoose.Types.ObjectId(tweetId)
+                _id : new mongoose.Types.ObjectId(tweetId)
             },
             {
                 content
@@ -60,17 +66,20 @@ const updateTweet = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200,{tweet}, "tweet updated successfully"))
     } catch (error) {
-        throw new ApiError(500, `Something went wrong, while updating the tweets ${error.message}`)
+        throw new ApiError(500, error.message)
     }
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
     //TODO: delete tweet
     const { tweetId } = req.params
+    if(!tweetId){
+        throw new ApiError(400, "please insert tweetId")
+    }
     try {
         const tweet = await Tweet.deleteOne(
             {
-                _id : mongoose.Types.ObjectId(tweetId)
+                _id : new mongoose.Types.ObjectId(tweetId)
             },
         )
         return res
