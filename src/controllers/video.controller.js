@@ -121,7 +121,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         }
 
         //deleted old thumbnail from cloudinary
-        const deletedThumbnail = await deleteFromCloudinary(oldThumbnailURL)
+        const deletedThumbnail = await deleteFromCloudinary(oldThumbnailURL, 'image')
         // if(!deletedThumbnail){
         //     throw new ApiError(500, "Error: old thumbnail not deleted from cloudinary")
         // }
@@ -151,6 +151,35 @@ const updateVideo = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+    if(!videoId){
+        throw new ApiError(400, "please insert VideoId")
+    }
+    try {
+        const video = await Video.findOne({
+            _id: new mongoose.Types.ObjectId(videoId)
+        })
+        if(!video){
+            throw new ApiError(404, "VideoId not found!")
+        }
+        const {videoFile, thumbnail} = video
+        if(!videoFile || !thumbnail){
+            console.log("videoFile and thumbnail not found!")
+        }
+        //deleted old thumbnail and videoFile from cloudinary
+        const deletedThumbnail = await deleteFromCloudinary(thumbnail, 'image')
+        const deletedVideoFile = await deleteFromCloudinary(videoFile, 'video')
+
+        //delete video from database
+        const deletevideo = await Video.deleteOne({
+            _id: new mongoose.Types.ObjectId(videoId)
+        })
+
+        return res
+        .status(200)
+        .json(new ApiResponse(200, deletevideo, "video deleted successfully!"))
+    } catch (error) {
+        throw new ApiError(500, `${error.message}`)
+    }
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
