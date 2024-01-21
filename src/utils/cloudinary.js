@@ -26,15 +26,18 @@ const uploadOnCloudinary = async (localFilePath) => {
 }
 
 const deleteFromCloudinary = async (publicid) => {
-  try {
     if (!publicid) return "Public id not found";
-    const deleteResponse = await cloudinary.uploader.destroy(publicid, {
-      resource_type: "auto",
-    });
-    return deleteResponse;
-  } catch (e) {
-    return e.message;
-  }
+    // Note: The public ID value for images and videos should not include a file extension. Include the file extension for raw files only.
+    const urlArray = publicid.split('/');
+    console.log(urlArray)
+    const image = urlArray[urlArray.length-1]
+    console.log(image)
+    const imageName = image.split('.')[0];
+    console.log(imageName)
+
+    const deleteResponse = await cloudinary.uploader.destroy(imageName, (error, result) => {
+      console.log(error, result)
+    })
 };
 
 export {uploadOnCloudinary, deleteFromCloudinary};
