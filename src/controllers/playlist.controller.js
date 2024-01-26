@@ -18,7 +18,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
         const createdplaylist = await Playlist.create({
             name,
             description,
-            owner: mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(userId)
             //because we are creating new playlist so how we have videos
         }) 
         return res
@@ -37,7 +37,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     }
     try {
         const userPlaylists = await Playlist.find({
-            owner: mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(userId)
         })
         if(!userPlaylists){
             throw new ApiError(500, "User playlist not found")
@@ -58,7 +58,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     }
     try {
         const playlist = await Playlist.findOne({
-            _id: mongoose.Types.ObjectId(playlistId)
+            _id: new mongoose.Types.ObjectId(playlistId)
         })
         if(!playlist){
             throw new ApiError(404, "playlist not found")
@@ -73,16 +73,10 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
-    if(isValidObjectId(playlistId)){
-        throw new ApiError(400, "please insert a valid playlistId")
-    }
-    if(isValidObjectId(videoId)){
-        throw new ApiError(400, "please insert a valid videoId")
-    }
     try {
         const playlist = await Playlist.findOneAndUpdate(
             { _id: playlistId }, // Filter
-            { $push: { videos: mongoose.Types.ObjectId(videoId) } }, // Update
+            { $push: { videos: new mongoose.Types.ObjectId(videoId) } }, // Update
             { new: true } // Optional: Return the modified document
         );
         if(!playlist){
@@ -99,16 +93,10 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
     // TODO: remove video from playlist
-    if(isValidObjectId(playlistId)){
-        throw new ApiError(400, "please insert a valid playlistId")
-    }
-    if(isValidObjectId(videoId)){
-        throw new ApiError(400, "please insert a valid videoId")
-    }
     try {
         const playlist = await Playlist.findOneAndUpdate(
-            { _id: mongoose.Types.ObjectId(playlistId) }, // Filter
-            { $pull: { videos: mongoose.Types.ObjectId(videoId) } }, // Update
+            { _id: new mongoose.Types.ObjectId(playlistId) }, // Filter
+            { $pull: { videos: new mongoose.Types.ObjectId(videoId) } }, // Update
             { new: true } // Optional: Return the modified document
         );
         if(!playlist){
@@ -131,7 +119,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     }
     try {
         const playlist = await Playlist.deleteOne(
-            { _id: mongoose.Types.ObjectId(playlistId) }, // Filter
+            { _id: new mongoose.Types.ObjectId(playlistId) }, // Filter
         );
         if(!playlist){
             throw new ApiError(404, `playlist not found ${error.message}`)
@@ -151,12 +139,9 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     if(!name || !description){
         throw new ApiError(400, "all fields are required!")
     }
-    if(!isValidObjectId(playlistId)){
-        throw new ApiError(400, "please insert a valid playlistId")
-    }
     try {
         const playlist = await Playlist.findByIdAndUpdate(
-            { _id: mongoose.Types.ObjectId(playlistId) }, // Filter
+            { _id: new mongoose.Types.ObjectId(playlistId) }, // Filter
             {
                 name,
                 description,        // update
@@ -166,13 +151,13 @@ const updatePlaylist = asyncHandler(async (req, res) => {
             }
         );
         if(!playlist){
-            throw new ApiError(404, `playlist not found ${error.message}`)
+            throw new ApiError(404, "playlist not found")
         }
         return res
         .status(200)
         .json(new ApiResponse(200, playlist, "playlist updated successfully!"))
     } catch (error) {
-        throw new ApiError(500, `something went wrong, while updating the playlist ${error.message}`)
+        throw new ApiError(500, `something went wrong ${error.message}`)
     }
 })
 
